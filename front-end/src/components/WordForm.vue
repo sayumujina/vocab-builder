@@ -63,11 +63,12 @@
     console.log(`Japanese: ${word.value.japanese}`);
 
     // Validate input
-    if (word.value.english === '' || word.value.german === '' || word.value.japanese === '') {
+    if (!word.value.english || !word.value.german || !word.value.japanese) {
       errorsPresent.value = true;
       return;
     }
     else {
+      
       emit('createOrUpdate', word.value); // Emit the event with the word data
     }
   }
