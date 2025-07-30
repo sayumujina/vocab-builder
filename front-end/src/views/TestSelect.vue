@@ -145,6 +145,9 @@ button.ui.button {
   margin: 0;
 }
 
+</style>
+
+<style>
 h1.dark {
   color: #f0f0f0;
 }
