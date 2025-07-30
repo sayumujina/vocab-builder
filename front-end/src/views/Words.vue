@@ -1,6 +1,20 @@
 <template>
     <div>
         <h1>Words</h1>
+        
+        <!-- Search bar -->
+        <div class="search-container" :class="{ dark: isDarkMode }">
+          <div class="ui icon input" :class="{ dark: isDarkMode }">
+            <input 
+              type="text" 
+              v-model="searchTerm" 
+              placeholder="Search words..." 
+              :class="{ dark: isDarkMode }"
+            >
+            <i class="search icon"></i>
+          </div>
+        </div>
+        
         <table id="words" class="ui celled compact table" :class="{ dark: isDarkMode }">
         <thead>
             <tr style="font-size: 1.2em; text-align: center;">
@@ -11,7 +25,7 @@
             <th colspan="3"></th>
             </tr>
         </thead>
-        <tr v-for="(word, index) in pages" :key="index">
+        <tr v-for="(word, index) in filteredPages" :key="index">
             <td>{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
             <td>{{ word.english }}</td>
             <td>{{ word.german }}</td>
@@ -61,7 +75,7 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, computed } from 'vue';
+    import { ref, onMounted, computed, watch } from 'vue';
     import { api } from '../helpers/helpers'; 
     import { useDarkMode } from '../composables/useDarkMode'; 
     import { toast } from 'vue3-toastify'; 
@@ -72,15 +86,38 @@
     const pageInput = ref(1);
     const itemsPerPage = 25;
 
+    // Search functionality
+    const searchTerm = ref('');
+
+    const filteredWords = computed(() => {
+        if (!searchTerm.value.trim()) return words.value;
+        
+        const term = searchTerm.value.toLowerCase().trim();
+        
+        return words.value.filter(word => {
+            return (
+                word.english.toLowerCase().includes(term) ||
+                word.german.toLowerCase().includes(term) ||
+                word.japanese.toLowerCase().includes(term)
+            );
+        });
+    });
+
+    // Reset to page 1 when search changes
+    watch(searchTerm, () => {
+      currentPage.value = 1;
+    });
+
     // Split words into pages
-    const pages = computed(() => {
+
+    const filteredPages = computed(() => {
         const start = (currentPage.value - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        return words.value.slice(start, end);
+        return filteredWords.value.slice(start, end);
     });
 
     const totalPages = computed(() => 
-        Math.ceil(words.value.length / itemsPerPage)
+        Math.ceil(filteredWords.value.length / itemsPerPage)
     );
 
     // Page navigation
@@ -215,5 +252,35 @@ table.ui.celled.compact.table.dark tr:nth-child(odd) {
 
 .ui.pagination.menu {
     margin: 0;
+}
+
+.search-container {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+search-container .ui.input {
+  width: 300px;
+}
+
+search-container input {
+  width: 100%;
+}
+
+.search-filters {
+  display: flex;
+  gap: 15px;
+}
+
+.ui.checkbox label.dark {
+  color: #f0f0f0;
+}
+
+.ui.input.dark input {
+  background: #282b25;
+  color: #f0f0f0;
+  border-color: #444;
 }
 </style>
